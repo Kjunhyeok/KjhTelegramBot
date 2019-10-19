@@ -1,0 +1,36 @@
+plugins {
+    id 'org.springframework.boot' version '2.1.9.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
+}
+
+group = 'com.kjh.telegram'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter', version: '2.1.9.RELEASE'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    compile group: 'org.telegram', name: 'telegrambots', version: '4.4.0.1'
+    compile group: 'com.konghq', name: 'unirest-java', version: '3.1.00'
+    compile 'com.google.apis:google-api-services-cloudsearch:v1-rev31-1.25.0'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-dynamodb', version: '1.11.651'
+
+}
