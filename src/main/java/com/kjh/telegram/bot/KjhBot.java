@@ -3,6 +3,8 @@ package com.kjh.telegram.bot;
 import com.kjh.telegram.baseball.BaseballGame;
 import com.kjh.telegram.baseball.BaseballReceiver;
 import com.kjh.telegram.exception.CaptionIsEmptyException;
+import com.kjh.telegram.exchange.Country;
+import com.kjh.telegram.exchange.ExchangeApi;
 import com.kjh.telegram.file.KjhFile;
 import com.kjh.telegram.file.exception.FileDeleteFailException;
 import com.kjh.telegram.naverapi.translate.Translation;
@@ -22,7 +24,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
 public class KjhBot extends TelegramLongPollingBot {
@@ -45,7 +49,9 @@ public class KjhBot extends TelegramLongPollingBot {
                 onFileCommand();
             } else {
                 String text = message.getText().replaceFirst("/", "");
-                if (message.getText().startsWith("/") && update.hasMessage() && update.getMessage().hasText()) {
+                if (message.getText().equals("/help")) {
+                    sendMessage("명령어 종류\n/숫자야구, /숫자야구시작\n/파일, /파일 {파일명}, /파일삭제 {파일명}\n/기사 {텍스트}\n/사전 {텍스트}\n/환율 {달러,엔,위안,유로}\n/달러 {원}, /엔 {원}, /위안 {원} /유로 {원}\n/(번역할나라)(번역될나라) {번역할텍스트}, ex) /한영 /영일");
+                } else if (message.getText().startsWith("/") && update.hasMessage() && update.getMessage().hasText()) {
                     onTextCommand(text);
                 }
             }
@@ -165,22 +171,28 @@ public class KjhBot extends TelegramLongPollingBot {
         } else {
             String sendText;
             boolean isHtml = false;
-            if (text.equals("누구")) {
-                User user = message.getFrom();
-                sendText = "넌 " + user.getLastName() + user.getFirstName() + "이야";
-            } else if (text.startsWith("숫자야구"))
+            List<String> rcp = Arrays.asList("보", "가위", "바위");
+            if (text.startsWith("숫자야구"))
                 sendText = new BaseballReceiver().check(text);
             else if (BaseballGame.isStart() && text.matches("^[0-9]*$"))
                 sendText = BaseballGame.verify(text);
-            else if (text.startsWith("기사"))
+            else if (text.startsWith("기사")) {
+                isHtml = true;
                 sendText = WebDocument.search(text.replaceFirst("기사 ", ""));
-            else if (text.startsWith("사전")) {
+            } else if (text.startsWith("사전")) {
                 isHtml = true;
                 sendText = Dictionary.search(text.replaceFirst("사전 ", ""));
             } else if (Translation.Language.contains(text.substring(0, 1))
                     && Translation.Language.contains(text.substring(1, 2)))
                 sendText = Translation.translate(text);
-            else
+            else if (rcp.contains(text)) {
+                sendText = rcp.get(new Random().nextInt(3));
+            } else if (text.startsWith("환율")) {
+                sendText = ExchangeApi.exchange(text.replaceFirst("환율 ", ""), true) + "원";
+            } else if (Country.search(text) != Country.NONE) {
+                Country searchCountry = Country.search(text);
+                sendText = ExchangeApi.exchange(text.replace("원", ""), false) + searchCountry.getKor();
+            } else
                 sendText = text;
 
             sendMessage(sendText, isHtml);
