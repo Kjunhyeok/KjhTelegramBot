@@ -41,11 +41,13 @@ public class KjhBot extends TelegramLongPollingBot {
         message = update.getMessage();
         log.info("{}", message.toString());
         try {
-            String text = message.getText().replaceFirst("/", "");
-            if (update.hasMessage() && update.getMessage().hasText()) {
-                onTextCommand(text);
-            } else if (message.hasPhoto() || message.hasDocument()) {
+            if (message.hasPhoto() || message.hasDocument()) {
                 onFileCommand();
+            } else {
+                String text = message.getText().replaceFirst("/", "");
+                if (message.getText().startsWith("/") && update.hasMessage() && update.getMessage().hasText()) {
+                    onTextCommand(text);
+                }
             }
         } catch (TelegramApiException e) {
             log.error("Telegram Api Exception", e);
@@ -67,19 +69,32 @@ public class KjhBot extends TelegramLongPollingBot {
     }
 
     public void sendMessage(String text, boolean isHtml) throws TelegramApiException {
-        execute(new SendMessage().setChatId(message.getChatId()).enableHtml(isHtml).setText(text));
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId());
+        sendMessage.setText(text);
+        sendMessage.enableHtml(isHtml);
+        execute(sendMessage);
     }
 
-    public void sendPhoto(java.io.File file) throws TelegramApiException {
-        execute(new SendPhoto().setChatId(message.getChatId()).setPhoto(file));
+    public void sendPhoto(InputFile file) throws TelegramApiException {
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setChatId(message.getChatId());
+        sendPhoto.setPhoto(file);
+        execute(sendPhoto);
     }
 
-    public void sendVideo(java.io.File file) throws TelegramApiException {
-        execute(new SendVideo().setChatId(message.getChatId()).setVideo(file));
+    public void sendVideo(InputFile file) throws TelegramApiException {
+        SendVideo sendVideo = new SendVideo();
+        sendVideo.setChatId(message.getChatId());
+        sendVideo.setVideo(file);
+        execute(sendVideo);
     }
 
-    public void sendDocument(java.io.File file) throws TelegramApiException {
-        execute(new SendDocument().setChatId(message.getChatId()).setDocument(file));
+    public void sendDocument(InputFile file) throws TelegramApiException {
+        SendDocument sendDocument = new SendDocument();
+        sendDocument.setChatId(message.getChatId());
+        sendDocument.setDocument(file);
+        execute(sendDocument);
     }
 
     private GetFile saveFile(Message message){
@@ -110,7 +125,7 @@ public class KjhBot extends TelegramLongPollingBot {
             text = text.replace("파일", "");
             try {
                 String name = text.substring(text.lastIndexOf(" ") + 1);
-                KjhFile kjhFile = new KjhFile(name, message.getFrom().getId());
+                KjhFile kjhFile = new KjhFile(name, message.getFrom().getId().intValue());
                 if(text.equals("")){
                     sendMessage("저장된 파일 리스트\n\n" + kjhFile.getFileList());
                 } else if(text.startsWith("삭제")) {
@@ -119,7 +134,7 @@ public class KjhBot extends TelegramLongPollingBot {
 
                     sendMessage("삭제가 완료되었습니다");
                 } else {
-                    java.io.File file = kjhFile.getFile();
+                    InputFile file = kjhFile.getFile();
                     if(kjhFile.isPhoto())
                         sendPhoto(file);
                     else if(kjhFile.isVideo())
@@ -141,7 +156,7 @@ public class KjhBot extends TelegramLongPollingBot {
         } else if(text.startsWith("지도")){
             try {
                 java.io.File mapFile = Maps.get(text.replace("지도 ", ""));
-                sendPhoto(mapFile);
+                sendPhoto(new InputFile(mapFile));
                 if(!mapFile.delete())
                     log.warn("Map file delete fail");
             } catch (IOException | JSONException e){
@@ -183,7 +198,7 @@ public class KjhBot extends TelegramLongPollingBot {
             java.io.File file = downloadFile(photoFile);
             String path = photoFile.getFilePath();
             String ext = path.substring(path.lastIndexOf("."));
-            KjhFile kjhFile = new KjhFile(message.getCaption(), message.getFrom().getId());
+            KjhFile kjhFile = new KjhFile(message.getCaption(), message.getFrom().getId().intValue());
             kjhFile.saveFile(file, ext);
             sendMessage("파일 저장이 완료되었습니다.");
         } catch (IOException e) {

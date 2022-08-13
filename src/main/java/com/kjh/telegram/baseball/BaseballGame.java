@@ -44,7 +44,10 @@ public class BaseballGame {
 
 		char[] numArray = message.toCharArray();
 
-		if(numArray[0] - '0' == 0){
+		if(numArray.length != length()) {
+			return "숫자 길이가 올바르지 않습니다.";
+		}
+		if(numArray[0] - '0' == 0) {
 			return "잘못 입력하셨습니다.";
 		}
 		for (int i = 0; i < numArray.length; i++) {
@@ -54,7 +57,7 @@ public class BaseballGame {
 				}
 			}
 		}
-		for (int i = 0; i < com.length; i++) {
+		for (int i = 0; i < length(); i++) {
 			for (int j = 0; j < numArray.length; j++) {
 				int num = numArray[j] - '0';
 				if (com[i] == num && i == j) {
@@ -64,7 +67,7 @@ public class BaseballGame {
 				}
 			}
 		}
-		if (strike == com.length){
+		if (strike == length()){
 			isStart = false;
 			int tmp = counter;
 			counter = 0;

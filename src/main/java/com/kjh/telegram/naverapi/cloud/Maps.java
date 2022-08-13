@@ -13,12 +13,12 @@ import java.io.IOException;
 public class Maps extends NaverAPI {
 
     public static File get(String message) throws IOException, JSONException {
-        HttpResponse<JsonNode> res = Unirest.get("https://naveropenapi.apigw.ntruss.com/map-place/v1/search")
+        HttpResponse<JsonNode> res = Unirest.get("https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode")
                 .headers(cloudAPIHeaders)
                 .queryString("coordinate", "127.1054221,37.3591614")
                 .queryString("query", message)
                 .asJson();
-        JSONObject object = res.getBody().getObject().getJSONArray("places").getJSONObject(0);
+        JSONObject object = res.getBody().getObject().getJSONArray("addresses").getJSONObject(0);
         String x = object.getString("x");
         String y = object.getString("y");
 
@@ -28,7 +28,7 @@ public class Maps extends NaverAPI {
                 .queryString("h", 600)
                 .queryString("center", x + "," + y)
                 .queryString("level", 16)
-                .asFile("D:\\telegrambotdata/" + System.currentTimeMillis() + ".png");
+                .asFile("C:\\Users\\KJH\\Downloads\\TelegramBotData/" + System.currentTimeMillis() + ".png");
         File file = resFile.getBody();
         file.createNewFile();
         return file;

@@ -3,6 +3,7 @@ package com.kjh.telegram.file;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendVideo;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
@@ -12,7 +13,7 @@ import java.nio.file.Files;
 
 public class KjhFile {
 
-    private final String filePath = "D:/telegrambotdata";
+    private final String filePath = "C:\\Users\\KJH\\Downloads\\TelegramBotData";
 
     private String fileName;
     private int userId;
@@ -31,7 +32,7 @@ public class KjhFile {
     }
 
     public boolean deleteFile() throws FileNotFoundException {
-        return getFile().delete();
+        return getFile().getNewMediaFile().delete();
     }
 
     public String getFileList(){
@@ -50,8 +51,9 @@ public class KjhFile {
     }
 
     public SendVideo getVideo() throws FileNotFoundException {
-        return new SendVideo()
-                .setVideo(getFile());
+        SendVideo sendVideo = new SendVideo();
+        sendVideo.setVideo(getFile());
+        return sendVideo;
     }
 
     public boolean isPhoto() throws IOException {
@@ -59,13 +61,15 @@ public class KjhFile {
     }
 
     public SendPhoto getPhoto() throws FileNotFoundException {
-        return new SendPhoto()
-                .setPhoto(getFile());
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setPhoto(getFile());
+        return sendPhoto;
     }
 
     public SendDocument getDocument() throws FileNotFoundException {
-        return new SendDocument()
-                .setDocument(getFile());
+        SendDocument sendDocument = new SendDocument();
+        sendDocument.setDocument(getFile());
+        return sendDocument;
     }
 
     private File[] getFiles(){
@@ -73,16 +77,16 @@ public class KjhFile {
                 .listFiles((dir, name) -> name.contains(userId + fileName));
     }
 
-    public File getFile() throws FileNotFoundException {
+    public InputFile getFile() throws FileNotFoundException {
         File[] files = getFiles();
         assert files != null;
         if(files.length == 0){
             throw new FileNotFoundException();
         }
-        return files[0];
+        return new InputFile(files[0]);
     }
 
     private String getMime() throws IOException {
-        return Files.probeContentType(getFile().toPath());
+        return Files.probeContentType(getFile().getNewMediaFile().toPath());
     }
 }
